@@ -1,0 +1,18 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;1,200&display=swap" rel="stylesheet">
+
+<html lang="en">
+  <h1 style= "font-size: 10em; text-align: center;">Pindala leidmine</h1>
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %} Chomp </title>
+  </head>
+  <body>
+    <nav>
+        <a href="{% url 'home' %}">Home</a>
+    </nav>
+    {% block content %}
+    {% endblock %}
+  </body>
+</html>
