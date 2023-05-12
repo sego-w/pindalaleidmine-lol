@@ -13,6 +13,13 @@
   <body>
     <canvas id="paint" width="1000" height="1000" style="border: 5px solid #000000;" text-align="center
     ">Update your browser to support HTML5 Canvas</canvas>
+    <button id="penciltool" type="button" style="height: 25px; width: 100px;" onclick="pencil()">Pencil</button>
+    <button id="linetool" type="button" style="height: 25px; width: 100px;" onclick="line()">Line</button>
+    <button id="rectangletool" type="button" style="height: 25px; width: 100px;" onclick="rectangle()">Rectangle</button> 
+    <button id="circletool" type="button" style="height: 25px; width: 100px;" onclick="circle()">Circle</button> 
+    <button id="erasertool" type="button" style="height: 25px; width: 100px;" onclick="eraser()">Eraser</button> 
+    <button id="resettool" type="button" style="height: 25px; width: 100px;" onclick="reset()">Reset</button>
+
     <nav>
         <a href="{% url 'home' %}">Home</a>
     </nav>
@@ -23,3 +30,4 @@
     {% endblock %}
   </body>
 </html>
+
