@@ -6,5 +6,7 @@ from django.urls import include
 
 urlpatterns = [
     path('', views.home, name = 'home'),
+
     path('description', views.description, name = 'mushamusha'),
+
 ]
