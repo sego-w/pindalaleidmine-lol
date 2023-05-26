@@ -8,3 +8,7 @@ class Files(models.Model):
          
 def __unicode__(self):
     return self.name
+
+class Shape(models.Model):
+    points = models.TextField()
+    scale = models.FloatField()
