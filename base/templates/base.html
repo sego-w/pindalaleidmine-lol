@@ -14,12 +14,13 @@
     <div></div>
   </head>
   <body bgcolor="#FFFDD0" style="text-align: center;">
+    <nav>
+        <a href="{% url 'mushamusha' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">Autorid</a>
+    </nav>
     <br>
     <canvas id="drawingCanvas" width="500" height="500" style="border: 1px solid black;"></canvas>
-    <nav>
+    <nav font-size="40">
         <a href="{% url 'home' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">Reset</a>
-        <br>
-        <a href="{% url 'mushamusha' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">CEO-de elu on magus</a>
     </nav>
     {% block content %}
     {% endblock %}
