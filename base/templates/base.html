@@ -1,19 +1,26 @@
-<!DOCTYPE html>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;1,200&display=swap" rel="stylesheet">
+
 <html lang="en" style="text-align: center">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %} Chomp</title>
+  <h1 style= "font-size: 100; text-align: center;">Pindala leidmine</h1>
+  <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;1,200&display=swap" rel="stylesheet">
-</head>
-<body bgcolor="#FFFDD0" style="text-align: center;">
-    <br>
-    <h1 style="font-size: 100; text-align: center;">Pindala leidmine</h1>
-    <b style="font-size: 1em; text-align: center; font-family: Monsterrat, sans-serif;">WARNING! DO NOT USE THIS APP</b>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %} Chomp </title>
+    <b style= "font-size: 1em; text-align: center; font-family: Monsterrat, sans-serif;">WARNING! DO NOT USE THIS APP</b>
     <div></div>
+  </head>
+  <body bgcolor="#FFFDD0" style="text-align: center;">
+    <br>
     <canvas id="drawingCanvas" width="500" height="500" style="border: 1px solid black;"></canvas>
-
+    <nav>
+        <a href="{% url 'home' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">Home</a>
+        <br>
+        <a href="{% url 'mushamusha' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">CEO-de elu on magus</a>
+    </nav>
     {% block content %}
     {% endblock %}
 
