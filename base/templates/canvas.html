@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas</title>
+    <style>
+        #drawingCanvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+    <button id="toggleButton" onclick="toggleMode()">Switch to Paint</button>
+    <button id="saveButton" onclick="saveShape()">Save Shape</button>
+    <div id="resultArea"></div>
+
+    <script>
+        var drawing = false;
+        var painting = false;
+        var points = [];
+        var canvas = document.getElementById("drawingCanvas");
+        var context = canvas.getContext("2d");
+
+        function toggleMode() {
+            var toggleButton = document.getElementById("toggleButton");
+            if (toggleButton.innerText === "Switch to Paint") {
+                toggleButton.innerText = "Switch to Draw";
+                currentMode = "paint"; // Switch to paint mode
+            } else {
+                toggleButton.innerText = "Switch to Paint";
+                currentMode = "draw"; // Switch to draw mode
+            }
+        }
+
+        canvas.addEventListener("mousedown", function(event) {
+            if (currentMode === "draw") {
+                drawing = true;
+                var x = event.clientX - canvas.offsetLeft;
+                var y = event.clientY - canvas.offsetTop;
+                points.push({ x: x, y: y });
+                redraw();
+            } else if (currentMode === "paint") {
+                painting = true;
+                var x = event.clientX - canvas.offsetLeft;
+                var y = event.clientY - canvas.offsetTop;
+                fillArea(x, y, "rgba(0, 0, 0, 1)");
+            }
+        });
+
+        canvas.addEventListener("mousemove", function(event) {
+            if (currentMode === "draw" && drawing) {
+                var x = event.clientX - canvas.offsetLeft;
+                var y = event.clientY - canvas.offsetTop;
+                points.push({ x: x, y: y });
+                redraw();
+            }
+        });
+
+        canvas.addEventListener("mouseup", function(event) {
+            if (currentMode === "draw") {
+                drawing = false;
+            } else if (currentMode === "paint") {
+                painting = false;
+            }
+        });
+
+        function redraw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.beginPath();
+
+            for (var i = 0; i < points.length; i++) {
+                var point = points[i];
+                if (i === 0) {
+                    context.moveTo(point.x, point.y);
+                } else {
+                    context.lineTo(point.x, point.y);
+                }
+            }
+
+            context.stroke();
+        }
+
+        function fillArea(x, y, fillColor) {
+            var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            var pixels = imageData.data;
+            var targetColor = getPixelColor(x, y, pixels);
+            var visitedPixels = {};
+
+            if (targetColor !== fillColor) {
+                floodFill(x, y, targetColor, fillColor);
+                context.putImageData(imageData, 0, 0);
+            }
+
+            function getPixelColor(x, y, pixels) {
+                var index = (y * canvas.width + x) * 4;
+                var r = pixels[index];
+                var g = pixels[index + 1];
+                var b = pixels[index + 2];
+                var a = pixels[index + 3];
+                return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+            }
+
+            function setPixelColor(x, y, fillColor, pixels) {
+                var index = (y * canvas.width + x) * 4;
+                var colorComponents = fillColor.substring(5, fillColor.length - 1).split(",");
+                pixels[index] = parseInt(colorComponents[0]);
+                pixels[index + 1] = parseInt(colorComponents[1]);
+                pixels[index + 2] = parseInt(colorComponents[2]);
+                pixels[index + 3] = parseInt(colorComponents[3]);
+            }
+
+            function floodFill(x, y, targetColor, fillColor) {
+                var stack = [];
+                stack.push({ x: x, y: y });
+
+                while (stack.length > 0) {
+                    var pixel = stack.pop();
+                    x = pixel.x;
+                    y = pixel.y;
+
+                    if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) {
+                        continue;
+                    }
+
+                    var currentColor = getPixelColor(x, y, pixels);
+
+                    if (currentColor !== targetColor || visitedPixels[x + "," + y]) {
+                        continue;
+                    }
+
+                    setPixelColor(x, y, fillColor, pixels);
+                    visitedPixels[x + "," + y] = true;
+
+                    stack.push({ x: x + 1, y: y });
+                    stack.push({ x: x - 1, y: y });
+                    stack.push({ x: x, y: y + 1 });
+                    stack.push({ x: x, y: y - 1 });
+                }
+            }
+        }
+
+        function saveShape() {
+            var pointsInput = document.createElement("input");
+            pointsInput.type = "hidden";
+            pointsInput.name = "points";
+            pointsInput.value = JSON.stringify(points);
+            document.getElementById("saveForm").appendChild(pointsInput);
+
+            var scaleInput = document.createElement("input");
+            scaleInput.type = "hidden";
+            scaleInput.name = "scale";
+            scaleInput.value = 1;  // Set the scale value as needed
+            document.getElementById("saveForm").appendChild(scaleInput);
+
+            document.getElementById("saveForm").submit();
+        }
+    </script>
+</body>
+</html>
+
