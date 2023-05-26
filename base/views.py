@@ -1,27 +1,16 @@
 from django.shortcuts import render
-<<<<<<< Updated upstream
-=======
 from django.http import HttpResponseRedirect, JsonResponse
 
 import json
 import random
->>>>>>> Stashed changes
 
 # Create your views here.
 
 def home(request):
-<<<<<<< Updated upstream
     return render(request, 'home.html')
-=======
     return render(request, 'home.html')
 def description(request):
     return render(request, 'description.html')
-
-
-
-
-
-
 
 
 def canvas(request):
@@ -65,4 +54,4 @@ def is_inside_shape(points, x, y):
     # This will depend on the type of shapes you want to support
     # Return True if the point is inside the shape, False otherwise
     pass
->>>>>>> Stashed changes
+
