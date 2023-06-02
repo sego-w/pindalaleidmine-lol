@@ -1,43 +1,26 @@
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;1,200&display=swap" rel="stylesheet">
-
-<html lang="en" style="text-align: center">
-  <h1 style= "font-size: 100; text-align: center;">Pindala leidmine</h1>
-  <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;1,200&display=swap" rel="stylesheet">
+<head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %} Chomp </title>
-    <b style= "font-size: 1em; text-align: center; font-family: Monsterrat, sans-serif;">WARNING! DO NOT USE THIS APP</b>
-    <div></div>
-  </head>
-  <body bgcolor="#FFFDD0" style="text-align: center;">
-    <nav>
-        <a href="{% url 'mushamusha' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">Autorid</a>
-    </nav>
-    <br>
-    <canvas id="drawingCanvas" width="500" height="500" style="border: 1px solid black;"></canvas>
-    <nav font-size="40">
-        <a href="{% url 'home' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">Reset</a>
-    </nav>
-    <nav>
-        <a href="{% url 'canvas' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">canvass</a>
-    </nav>
-    {% block content %}
-    {% endblock %}
-
+    <title>Canvas</title>
+    <style>
+        #drawingCanvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
     <button id="toggleButton" onclick="toggleMode()">Switch to Paint</button>
+    <button id="fillInsideButton" onclick="fillInside()">Fill Inside</button>
+    <button id="fillOutsideButton" onclick="fillOutside()">Fill Outside</button>
+    <div id="resultArea"></div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-      
         var drawing = false;
+        var painting = false;
         var points = [];
         var canvas = document.getElementById("drawingCanvas");
         var context = canvas.getContext("2d");
-
+        var currentMode = "draw"; // Add this line outside the toggleMode function
 
         function toggleMode() {
             var toggleButton = document.getElementById("toggleButton");
@@ -49,18 +32,33 @@
                 currentMode = "draw"; // Switch to draw mode
             }
         }
+        function fillInside() {
+            var fillColor = "rgba(0, 255, 0, 1)"; // Green color for inside fill
+            fillArea(fillColor, true);
+        }
 
-        
+        function fillOutside() {
+            var fillColor = "rgba(255, 0, 0, 1)"; // Red color for outside fill
+            fillArea(fillColor, false);
+        }
+
         canvas.addEventListener("mousedown", function(event) {
-            drawing = true;
-            var x = event.clientX - canvas.offsetLeft;
-            var y = event.clientY - canvas.offsetTop;
-            points.push({ x: x, y: y });
-            redraw();
+            if (currentMode === "draw") {
+                drawing = true;
+                var x = event.clientX - canvas.offsetLeft;
+                var y = event.clientY - canvas.offsetTop;
+                points.push({ x: x, y: y });
+                redraw();
+            } else if (currentMode === "paint") {
+                painting = true;
+                var x = event.clientX - canvas.offsetLeft;
+                var y = event.clientY - canvas.offsetTop;
+                fillArea(x, y, "rgba(0, 0, 0, 1)");
+            }
         });
 
         canvas.addEventListener("mousemove", function(event) {
-            if (drawing) {
+            if (currentMode === "draw" && drawing) {
                 var x = event.clientX - canvas.offsetLeft;
                 var y = event.clientY - canvas.offsetTop;
                 points.push({ x: x, y: y });
@@ -69,7 +67,11 @@
         });
 
         canvas.addEventListener("mouseup", function(event) {
-            drawing = false;
+            if (currentMode === "draw") {
+                drawing = false;
+            } else if (currentMode === "paint") {
+                painting = false;
+            }
         });
 
         function redraw() {
@@ -86,22 +88,15 @@
             }
 
             context.stroke();
-            updatePointsInput();
         }
-
-        function updatePointsInput() {
-            var pointsInput = document.getElementById("pointsInput");
-            pointsInput.value = JSON.stringify(points);
-        }
-
-        function fillArea(x, y, fillColor) {
+        function fillArea(x, y, fillColor, fillInside) {
             var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             var pixels = imageData.data;
             var targetColor = getPixelColor(x, y, pixels);
             var visitedPixels = {};
 
             if (targetColor !== fillColor) {
-                floodFill(x, y, targetColor, fillColor);
+                floodFill(x, y, targetColor, fillColor, fillInside);
                 context.putImageData(imageData, 0, 0);
             }
 
@@ -123,7 +118,7 @@
                 pixels[index + 3] = parseInt(colorComponents[3]);
             }
 
-            function floodFill(x, y, targetColor, fillColor) {
+            function floodFill(x, y, targetColor, fillColor, fillInside) {
                 var stack = [];
                 stack.push({ x: x, y: y });
 
@@ -138,7 +133,7 @@
 
                     var currentColor = getPixelColor(x, y, pixels);
 
-                    if (currentColor !== targetColor || visitedPixels[x + "," + y]) {
+                    if ((fillInside && currentColor === targetColor) || (!fillInside && currentColor !== targetColor) || visitedPixels[x + "," + y]) {
                         continue;
                     }
 
@@ -152,37 +147,6 @@
                 }
             }
         }
-
-        $(document).ready(function() {
-            $("#drawForm").submit(function(event) {
-                event.preventDefault();
-
-                var form = $(this);
-                var url = form.attr("action");
-                var data = form.serialize();
-
-                $.post(url, data, function(response) {
-                    alert("Shape saved successfully.");
-                });
-            });
-
-            $("#calculateButton").click(function() {
-                var shapeId = "SHAPE_ID_PLACEHOLDER";
-                var url = "CALCULATE_AREA_URL_PLACEHOLDER";
-                var data = { shape_id: shapeId };
-
-                $.post(url, data, function(response) {
-                    var resultArea = $("#resultArea");
-                    resultArea.text("Area: " + response.area + " square units");
-                });
-            });
-
-            $("#paintBucketButton").click(function() {
-                var x = parseInt($("#paintX").val());
-                var y = parseInt($("#paintY").val());
-                fillArea(x, y, "rgba(0, 0, 0, 1)");
-            });
-        });
     </script>
 </body>
 </html>

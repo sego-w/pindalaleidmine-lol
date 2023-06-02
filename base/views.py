@@ -8,9 +8,13 @@ import random
 
 def home(request):
     return render(request, 'home.html')
-    return render(request, 'home.html')
+
 def description(request):
     return render(request, 'description.html')
+
+def canvas_view(request):
+    return render(request, 'canvas.html')
+
 
 
 def canvas(request):
