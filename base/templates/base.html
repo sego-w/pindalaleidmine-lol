@@ -19,6 +19,7 @@
     </nav>
     <br>
     <canvas id="drawingCanvas" width="500" height="500" style="border: 1px solid black;"></canvas>
+    <p>Joonistatud kujundi pindala: <span id="pixelCount"></span></p>
     <nav font-size="40">
         <a href="{% url 'home' %}" style="text-align: center; font-family: Monsterrat, sans-serif;">Reset</a>
     </nav>
@@ -37,6 +38,7 @@
         var points = [];
         var canvas = document.getElementById("drawingCanvas");
         var context = canvas.getContext("2d");
+        
 
 
         function toggleMode() {
@@ -183,6 +185,7 @@
                 fillArea(x, y, "rgba(0, 0, 0, 1)");
             });
         });
+        
     </script>
 </body>
 </html>
