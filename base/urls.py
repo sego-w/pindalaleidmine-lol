@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import ShapeDrawerView
+from .views import homepage_view, CalculateAreaView, description
 
 urlpatterns = [
-    path('', ShapeDrawerView.as_view(), name='shape_drawer'),
-    path('', ShapeDrawerView.as_view(), name='calculate_area'),
+    path('', homepage_view, name='home'),
+    path('description/', description, name='description'),
+    path('calculate_area/', CalculateAreaView.as_view(), name='calculate_area'),
 ]

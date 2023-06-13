@@ -1,134 +1,168 @@
 <!DOCTYPE html>
 <html>
 <head>
-   <title>Shape Drawer</title>
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    <style>
        #canvas-container {
            width: 400px;
            height: 400px;
            position: relative;
+           display: flex;
+           justify-content: center;
+           align-items: center;
        }
 
        #canvas {
            border: 1px solid #000;
-           position: absolute;
-           top: 0;
-           left: 0;
        }
    </style>
 </head>
 <body>
    <form id="shapeForm" method="post">
        {% csrf_token %}
-       <h1>Shape Drawer</h1>
        <div id="canvas-container">
            <canvas id="canvas"></canvas>
        </div>
        <button id="calculate" type="button">Calculate Area</button>
-       <div id="errorContainer" style="color: red;"></div>
+       <button id="undo" type="button">Undo</button>
+       <button id="clear" type="button">Clear</button>
+       <div id="errorContainer" style="color: red; font-weight: bold;"></div>
    </form>
 
+
    <script>
-       var points = [];
-       var isDrawing = false;
+        var points = [];
+        var isDrawing = false;
 
-       function setCanvasSize() {
-    var canvasContainer = document.getElementById('canvas-container');
-    var canvas = document.getElementById('canvas');
-    canvas.width = canvasContainer.clientWidth;
-    canvas.height = canvasContainer.clientHeight;
-}
+        function setCanvasSize() {
+            var canvasContainer = document.getElementById('canvas-container');
+            var canvas = document.getElementById('canvas');
+            canvas.width = canvasContainer.clientWidth;
+            canvas.height = canvasContainer.clientHeight;
+        }
 
-function drawPoint(event) {
-    var canvas = document.getElementById('canvas');
-    var rect = canvas.getBoundingClientRect();
-    var x = (event.clientX - rect.left) * (canvas.width / rect.width);
-    var y = (event.clientY - rect.top) * (canvas.height / rect.height);
-    var context = canvas.getContext('2d');
+        function drawPoint(event) {
+            var canvas = document.getElementById('canvas');
+            var rect = canvas.getBoundingClientRect();
+            var x = (event.clientX - rect.left) * (canvas.width / rect.width);
+            var y = (event.clientY - rect.top) * (canvas.height / rect.height);
+            var context = canvas.getContext('2d');
 
-    context.fillStyle = '#000';
-    context.beginPath();
-    context.arc(x, y, 3, 0, 2 * Math.PI);
-    context.fill();
-    points.push(x + ',' + y);
-}
+            context.fillStyle = '#000';
+            context.beginPath();
+            context.arc(x, y, 3, 0, 2 * Math.PI);
+            context.fill();
+            points.push(x + ',' + y);
+        }
 
-       function clearCanvas() {
-           var canvas = document.getElementById('canvas');
-           var context = canvas.getContext('2d');
-           context.clearRect(0, 0, canvas.width, canvas.height);
-           points = [];
-       }
+        function undoLastPoint() {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
 
-       function calculateArea() {
-           var csrftoken = getCookie('csrftoken');
-           var errorContainer = document.getElementById('errorContainer');
-           
-           if (points.length < 3) {
-               errorContainer.textContent = 'At least 3 points are required to calculate the area';
-               return;
-           }
+            if (points.length > 0) {
+                points.pop(); 
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                points.forEach(function (point) {
+                    var coordinates = point.split(',');
+                    var x = parseFloat(coordinates[0]);
+                    var y = parseFloat(coordinates[1]);
 
-           errorContainer.textContent = ''; // Clear any previous error message
+                    context.fillStyle = '#000';
+                    context.beginPath();
+                    context.arc(x, y, 3, 0, 2 * Math.PI);
+                    context.fill();
+                });
+            }
+        }
 
-           $.ajax({
-               url: '/',
-               type: 'POST',
-               data: { points: points },
-               headers: {
-                   'X-CSRFToken': csrftoken
-               },
-               success: function (response) {
-                   alert('Estimated Area: ' + response.estimated_area);
-               },
-               error: function () {
-                   alert('Failed to calculate the area.');
-               }
-           });
-       }
+        function clearCanvas() {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            points = [];
+        }
 
-       $(document).ready(function () {
-           setCanvasSize();
+        function calculateArea() {
+            var csrftoken = getCookie('csrftoken');
+            var errorContainer = document.getElementById('errorContainer');
 
-           var canvas = document.getElementById('canvas');
+            if (points.length < 3) {
+                errorContainer.textContent = 'Vähemalt 3 punkti on vaja, et arvutada pindala';
+                return;
+            }
 
-           window.addEventListener('resize', setCanvasSize);
+            errorContainer.textContent = ''; // Clears any previous error message
 
-           canvas.addEventListener('mousedown', function (event) {
-               isDrawing = true;
-               drawPoint(event);
-           });
+            $.ajax({
+                url: '/',
+                type: 'POST',
+                data: { points: points },
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                success: function (response) {
+                    if (response.hasOwnProperty('error')) {
+                        errorContainer.textContent = response.error;
+                    } else {
+                        alert('Estimated Area: ' + response.estimated_area);
+                    }
+                },
+                error: function () {
+                    alert('Internal error.');
+                }
+            });
+        }
 
-           canvas.addEventListener('mousemove', function (event) {
-               if (isDrawing) {
-                   drawPoint(event);
-               }
-           });
+        $(document).ready(function () {
+            setCanvasSize();
 
-           canvas.addEventListener('mouseup', function () {
-               isDrawing = false;
-           });
+            var canvas = document.getElementById('canvas');
 
-           $('#calculate').click(function () {
-               calculateArea();
-           });
-       });
-       
-       function getCookie(name) {
-           var cookieValue = null;
-           if (document.cookie && document.cookie !== '') {
-               var cookies = document.cookie.split(';');
-               for (var i = 0; i < cookies.length; i++) {
-                   var cookie = cookies[i].trim();
-                   if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                       cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                       break;
-                   }
-               }
-           }
-           return cookieValue;
-       }
+            window.addEventListener('resize', setCanvasSize);
+
+            canvas.addEventListener('mousedown', function (event) {
+                isDrawing = true;
+                drawPoint(event);
+            });
+
+            canvas.addEventListener('mousemove', function (event) {
+                if (isDrawing) {
+                    drawPoint(event);
+                }
+            });
+
+            canvas.addEventListener('mouseup', function () {
+                isDrawing = false;
+            });
+
+            $('#calculate').click(function () {
+                calculateArea();
+            });
+
+            $('#undo').click(function () {
+                undoLastPoint();
+            });
+
+            $('#clear').click(function () {
+                clearCanvas();
+            });
+        });
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+
+            return cookieValue;
+        }
    </script>
 </body>
 </html>

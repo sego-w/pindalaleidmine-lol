@@ -1,1 +1,181 @@
 {% extends 'base.html' %}
+
+{% block content %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #canvas-container {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            margin: 0 auto;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        #canvas {
+            border: 1px solid #000;
+            margin-bottom: 20px;
+            margin-top: -20px;
+        }
+
+        #canvas-container p {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        #buttons-container {
+            text-align: center;
+        }
+
+        #buttons-container button {
+            margin: 5px;
+        }
+    </style>
+
+    <form id="shapeForm" method="post">
+        {% csrf_token %}
+        <div id="canvas-container">
+            <p>Joonistusala on mõõtmetega 5x5 ühikut</p>
+            <canvas id="canvas"></canvas>
+        </div>
+        <div id="buttons-container">
+            <button id="calculate" type="button">Arvuta pindala</button>
+            <button id="undo" type="button">Võta tagasi</button>
+            <button id="clear" type="button">Tühjenda</button>
+        </div>
+        <div id="errorContainer" style="color: red; font-weight: bold;"></div>
+    </form>
+
+    <script>
+        var points = [];
+        var isDrawing = false;
+
+        function setCanvasSize() {
+            var canvasContainer = document.getElementById('canvas-container');
+            var canvas = document.getElementById('canvas');
+            canvas.width = canvasContainer.clientWidth;
+            canvas.height = canvasContainer.clientHeight;
+        }
+
+        function drawPoint(event) {
+            var canvas = document.getElementById('canvas');
+            var rect = canvas.getBoundingClientRect();
+            var x = (event.clientX - rect.left) * (canvas.width / rect.width);
+            var y = (event.clientY - rect.top) * (canvas.height / rect.height);
+            var context = canvas.getContext('2d');
+
+            context.fillStyle = '#000';
+            context.beginPath();
+            context.arc(x, y, 3, 0, 2 * Math.PI);
+            context.fill();
+            points.push(x + ',' + y);
+        }
+
+        function undoLastPoint() {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+
+            if (points.length > 0) {
+                points.pop(); 
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                points.forEach(function (point) {
+                    var coordinates = point.split(',');
+                    var x = parseFloat(coordinates[0]);
+                    var y = parseFloat(coordinates[1]);
+
+                    context.fillStyle = '#000';
+                    context.beginPath();
+                    context.arc(x, y, 3, 0, 2 * Math.PI);
+                    context.fill();
+                });
+            }
+        }
+
+        function clearCanvas() {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            points = [];
+        }
+
+        function calculateArea() {
+            var csrftoken = getCookie('csrftoken');
+            var errorContainer = document.getElementById('errorContainer');
+
+            if (points.length < 3) {
+                errorContainer.textContent = 'At least 3 points are required to calculate the area';
+                return;
+            }
+
+            errorContainer.textContent = '';
+
+            $.ajax({
+                url: '/calculate_area/', 
+                type: 'POST',
+                data: { points: points },
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                success: function (response) {
+                    if (response.hasOwnProperty('error')) {
+                        errorContainer.textContent = response.error;
+                    } else {
+                        var area = response.estimated_area.toFixed(5);
+                        alert('Kujundi pindala on ' + area + ' ruutühikut');
+                    }
+                },
+            });
+        }
+
+        $(document).ready(function () {
+            setCanvasSize();
+
+            var canvas = document.getElementById('canvas');
+
+            window.addEventListener('resize', setCanvasSize);
+
+            canvas.addEventListener('mousedown', function (event) {
+                isDrawing = true;
+                drawPoint(event);
+            });
+
+            canvas.addEventListener('mousemove', function (event) {
+                if (isDrawing) {
+                    drawPoint(event);
+                }
+            });
+
+            canvas.addEventListener('mouseup', function () {
+                isDrawing = false;
+            });
+
+            $('#calculate').click(function () {
+                calculateArea();
+            });
+
+            $('#undo').click(function () {
+                undoLastPoint();
+            });
+
+            $('#clear').click(function () {
+                clearCanvas();
+            });
+        });
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+
+            return cookieValue;
+        }
+    </script>
+{% endblock %}

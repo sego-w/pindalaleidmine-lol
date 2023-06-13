@@ -1,28 +1,41 @@
-<h1>
-    <h1 style= "font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; color: #FFFF; font-size: 100; text-align: center;">Pindala Leidmise Meeskond</h1>
-</h1>
+{% extends 'base.html' %}
 
-<head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;1,200&display=swap" rel="stylesheet">
-</head>
+{% block content %}
 
-<body bgcolor= "#000000" style= "font-family: Monsterrat, sans-serif; font-size: 40; color: #FFFF; text-align: center;">
-        Kes on selle geniaalse äpi taga?
-        <br>
+<p class="text">Kes on selle geniaalse äpi taga?</p>
 
-    <small style= "font-family: Monsterrat, sans-serif; color: #FFFF; font-size: 30;text-align: center;">
-        <br>Gustav Paulkivi<br>
-        <p style="font-size:20;text-align: center">gustavpaul.tamkivi@real.edu.ee; facebook.com/paulkivi</p>
-        <br>Karl Karlkun<br>
-        <p style="font-size:20;text-align: center">karl.kalkun@real.edu.ee; chomp.com</p>
-        <br>Karl-Kalkun Lokk<br>
-        <p style="font-size:20;text-align: center">karlmartin.lokk@real.edu.ee; real.edu.ee/tunniplaanid</p>
-    </small>
+<small class="text">
+    <br>Gustav Paulkivi<br>
+    <p>gustavpaul.tamkivi@real.edu.ee; facebook.com/paulkivi</p>
+    <br>Karl Karlkun<br>
+    <p>karl.kalkun@real.edu.ee; chomp.com</p>
+    <br>Karl-Kalkun Lokk<br>
+    <p>karlmartin.lokk@real.edu.ee; real.edu.ee/tunniplaanid</p>
+</small>
 
-    <nav>
-        <a href="{% url 'home' %}" style="font-family: Monsterrat, sans-serif; font-size: 15;">Tagasi</a>
-    </nav>
 
-</body>
+<style>
+    .title {
+        font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color: #000000;
+        font-size: 40px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .text {
+        font-family: Montserrat, sans-serif;
+        color: #000000;
+        font-size: 30px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .link {
+        font-family: Montserrat, sans-serif;
+        font-size: 20px;
+        font-weight: bold;
+    }
+</style>
+
+{% endblock %}

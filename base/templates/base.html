@@ -1,10 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" style="text-align: center">
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;1,200&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <title>Pindala leidmine</title>
+    <title>{% block title %}{% endblock %} Chomp</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        nav a {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body bgcolor="#FFFDD0">
+    <h1 style="font-size: 100px;">Pindala leidmine</h1>
+    <div></div>
+
+    {% block content %}
+    {% endblock %}
+
+    <nav>
+        <div>
+            <a href="{% url 'description' %}">Autorid</a>
+        </div>
+        <div>
+            <a href="{% url 'home' %}">Koduleht</a>
+        </div>
+    </nav>
 </body>
 </html>
