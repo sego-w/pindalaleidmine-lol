@@ -1,98 +1,61 @@
 from django.shortcuts import render
-from django.views import View
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
+
+import json
 import random
 
+# Create your views here.
 
-class ShapeDrawerView(View):
-    template_name = 'shape_drawer.html'
-    canvas_width_meters = 5  # Width of the canvas in meters
-    canvas_height_meters = 5  # Height of the canvas in meters
+def home(request):
+    return render(request, 'home.html')
 
-    def get(self, request):
-        print("Django app activated")
-        return render(request, self.template_name)
+def description(request):
+    return render(request, 'description.html')
 
-    def post(self, request):
-        print("Post method called")
-        points = request.POST.getlist('points[]')
+def canvas_view(request):
+    return render(request, 'canvas.html')
 
-        if len(points) < 3:
-            error_message = 'At least 3 points are required to calculate the area'
-            return JsonResponse({'error': error_message})
 
-        result = self.calculate_area(points)
 
-        estimated_area = result['estimated_area']
-        points_inside = result['points_inside']
-        canvas_area = result['canvas_area']
+def canvas(request):
+    return render(request, 'canvas.html')
 
-        print("Points Inside:", points_inside)
-        print("Canvas Area:", canvas_area)
-        print("Estimated Area:", estimated_area)
+def draw_shape(request):
+    if request.method == 'POST':
+        points = request.POST.get('points')
+        scale = float(request.POST.get('scale'))
+        
+        shape = Shape(points=points, scale=scale)
+        shape.save()
+        
+    return JsonResponse({'success': True})
 
-        return JsonResponse({'estimated_area': estimated_area})
-
-    def calculate_area(self, points):
-        if len(points) < 3:
-            return {'error': 'At least 3 points are required to calculate the area'}
-
-        # Convert the received points to a list of tuples
-        points = [tuple(map(float, point.split(','))) for point in points]
-
-        # Find the minimum and maximum x and y coordinates
-        min_x = min(point[0] for point in points)
-        max_x = max(point[0] for point in points)
-        min_y = min(point[1] for point in points)
-        max_y = max(point[1] for point in points)
-
-        # Generate random points within the bounding box of the shape
-        num_points = 100000  # Number of random points to generate
+def calculate_area(request):
+    if request.method == 'POST':
+        shape_id = int(request.POST.get('shape_id'))
+        shape = Shape.objects.get(pk=shape_id)
+        points = json.loads(shape.points)
+        scale = shape.scale
+        
+        # Perform Monte Carlo method to calculate the area
+        num_points = 10000  # Number of random points to generate
         points_inside = 0
-
+        
         for _ in range(num_points):
-            x = random.uniform(min_x, max_x)
-            y = random.uniform(min_y, max_y)
-
-            if self.is_point_inside_shape(x, y, points):
+            x = random.uniform(0, scale)
+            y = random.uniform(0, scale)
+            
+            if is_inside_shape(points, x, y):
                 points_inside += 1
+        
+        area = (points_inside / num_points) * (scale ** 2)
+        
+        return JsonResponse({'area': area})
 
-        # Calculate the scaling factors
-        canvas_width_pixels = max_x - min_x
-        canvas_height_pixels = max_y - min_y
-        x_scale_factor = self.canvas_width_meters / canvas_width_pixels
-        y_scale_factor = self.canvas_height_meters / canvas_height_pixels
+def is_inside_shape(points, x, y):
+    # Implement logic to determine if a point is inside the shape
+    # You can use various techniques like the ray-casting algorithm or polygon winding number algorithm
+    # This will depend on the type of shapes you want to support
+    # Return True if the point is inside the shape, False otherwise
+    pass
 
-        # Scale the canvas area
-        canvas_area = self.canvas_width_meters * self.canvas_height_meters
-
-        # Scale the estimated area
-        estimated_area = (points_inside / num_points) * canvas_area
-
-        result = {
-            'estimated_area': estimated_area,
-            'points_inside': points_inside,
-            'canvas_area': canvas_area,
-        }
-
-        return result
-
-    def is_point_inside_shape(self, x, y, points):
-        # Implement the Winding Number algorithm to check if a point is inside a shape
-        wn = 0  # Winding number
-
-        for i in range(len(points)):
-            x1, y1 = points[i]
-            x2, y2 = points[(i + 1) % len(points)]
-
-            if y1 <= y:
-                if y2 > y and self.is_left(x1, y1, x2, y2, x, y) > 0:
-                    wn += 1
-            else:
-                if y2 <= y and self.is_left(x1, y1, x2, y2, x, y) < 0:
-                    wn -= 1
-
-        return wn != 0
-
-    def is_left(self, x1, y1, x2, y2, x, y):
-        return (x2 - x1) * (y - y1) - (x - x1) * (y2 - y1)
