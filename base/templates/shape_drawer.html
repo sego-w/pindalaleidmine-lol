@@ -1,52 +1,36 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html>
+<head>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   <style>
+       #canvas-container {
+           width: 400px;
+           height: 400px;
+           position: relative;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+       }
 
-{% block content %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        #canvas-container {
-            width: 400px;
-            height: 400px;
-            position: relative;
-            margin: 0 auto;
-            text-align: center;
-            margin-bottom: 40px;
-        }
+       #canvas {
+           border: 1px solid #000;
+       }
+   </style>
+</head>
+<body>
+   <form id="shapeForm" method="post">
+       {% csrf_token %}
+       <div id="canvas-container">
+           <canvas id="canvas"></canvas>
+       </div>
+       <button id="calculate" type="button">Calculate Area</button>
+       <button id="undo" type="button">Undo</button>
+       <button id="clear" type="button">Clear</button>
+       <div id="errorContainer" style="color: red; font-weight: bold;"></div>
+   </form>
 
-        #canvas {
-            border: 1px solid #000;
-            margin-bottom: 20px;
-            margin-top: -20px;
-        }
 
-        #canvas-container p {
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        #buttons-container {
-            text-align: center;
-        }
-
-        #buttons-container button {
-            margin: 5px;
-        }
-    </style>
-
-    <form id="shapeForm" method="post">
-        {% csrf_token %}
-        <div id="canvas-container">
-            <p>Joonistusala on mõõtmetega 5x5 ühikut</p>
-            <canvas id="canvas"></canvas>
-        </div>
-        <div id="buttons-container">
-            <button id="calculate" type="button">Arvuta pindala</button>
-            <button id="undo" type="button">Võta tagasi</button>
-            <button id="clear" type="button">Tühjenda</button>
-        </div>
-        <div id="errorContainer" style="color: red; font-weight: bold;"></div>
-    </form>
-
-    <script>
+   <script>
         var points = [];
         var isDrawing = false;
 
@@ -103,14 +87,14 @@
             var errorContainer = document.getElementById('errorContainer');
 
             if (points.length < 3) {
-                errorContainer.textContent = 'At least 3 points are required to calculate the area';
+                errorContainer.textContent = 'Vähemalt 3 punkti on vaja, et arvutada pindala';
                 return;
             }
 
-            errorContainer.textContent = '';
+            errorContainer.textContent = ''; // Clears any previous error message
 
             $.ajax({
-                url: '/calculate_area/', 
+                url: '/',
                 type: 'POST',
                 data: { points: points },
                 headers: {
@@ -120,10 +104,12 @@
                     if (response.hasOwnProperty('error')) {
                         errorContainer.textContent = response.error;
                     } else {
-                        var area = response.estimated_area.toFixed(5);
-                        alert('Kujundi pindala on ' + area + ' ruutühikut');
+                        alert('Estimated Area: ' + response.estimated_area);
                     }
                 },
+                error: function () {
+                    alert('Internal error.');
+                }
             });
         }
 
@@ -177,5 +163,6 @@
 
             return cookieValue;
         }
-    </script>
-{% endblock %}
+   </script>
+</body>
+</html>
